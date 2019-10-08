@@ -40,6 +40,7 @@
 -include("hackney.hrl").
 -include("hackney_lib.hrl").
 -include("hackney_internal.hrl").
+-include_lib("kernel/include/logger.hrl").
 
 
 -type url() :: #hackney_url{} | binary().
@@ -301,6 +302,7 @@ request(Method, URL, Headers, Body) ->
   | {ok, client_ref()}
   | {error, term()}.
 request(Method, #hackney_url{}=URL0, Headers0, Body, Options0) ->
+  ?LOG_INFO("### hackney:request: ~p ~p ~p ~p ~p~n", [Method, URL0, Headers0, Body, Options0]),
   PathEncodeFun = proplists:get_value(path_encode_fun, Options0,
     fun hackney_url:pathencode/1),
 

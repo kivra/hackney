@@ -41,6 +41,7 @@
 
 -include("hackney.hrl").
 -include_lib("hackney_internal.hrl").
+-include_lib("kernel/include/logger.hrl").
 
 -record(state, {
   name,
@@ -61,6 +62,7 @@ start() ->
 
 %% @doc fetch a socket from the pool
 checkout(Host0, Port, Transport, #client{options=Opts}=Client) ->
+  ?LOG_INFO("### checkout: ~p ~p ~p ~p", [Host0, Port, Transport, Client]),
   Host = string:to_lower(Host0),
   Pid = self(),
   RequestRef = Client#client.request_ref,
@@ -87,7 +89,8 @@ checkout(Host0, Port, Transport, #client{options=Opts}=Client) ->
   end.
 
 %% @doc release a socket in the pool
-checkin({_Name, Ref, Dest, Owner, Transport}, Socket) ->
+checkin({_Name, Ref, Dest, Owner, Transport}=X, Socket) ->
+  ?LOG_INFO("### checkin: ~p ~p~n", [X, Socket]),
   Transport:setopts(Socket, [{active, false}]),
   case sync_socket(Transport, Socket) of
     true ->
@@ -105,11 +108,13 @@ checkin({_Name, Ref, Dest, Owner, Transport}, Socket) ->
   end.
 
 get_stats(Pool) ->
+  ?LOG_INFO("### get_status: ~p~n", [Pool]),
   gen_server:call(find_pool(Pool), stats).
 
 
 %% @doc start a pool
 start_pool(Name, Options) ->
+  ?LOG_INFO("### start_pool: ~p ~p~n", [Name, Options]),
   case find_pool(Name, Options) of
     Pid when is_pid(Pid) ->
       ok;
