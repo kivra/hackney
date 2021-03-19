@@ -1,5 +1,15 @@
 # NEWS
 
+1.17.4 - 2021-03-18
+-------------------
+
+- fix checking when socket is put back in the pool when the requester died.
+
+1.17.3 - 2021-03-17
+-------------------
+
+- fix: ensure we release a socket in the pool when the requester died before beeing monitored.
+
 1.17.2 - 2021-03-16
 -------------------
 

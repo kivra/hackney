@@ -4,7 +4,7 @@
 %%% See the NOTICE for more information.
 %%%
 %%% Copyright (c) 2009, Erlang Training and Consulting Ltd.
-%%% Copyright (c) 2012-2015, Benoît Chesneau <benoitc@e-engura.org>
+%%% Copyright (c) 2012-2021, Benoît Chesneau <benoitc@e-engura.org>
 
 %% @doc pool of sockets connections
 %%
@@ -70,9 +70,19 @@ checkout(Host, Port, Transport, Client) ->
         catch _:_ ->
           {error, checkout_failure}
         end,
-      Requester ! {checkout, Ref, Result}
+      case is_process_alive(Requester) of
+        true ->
+          Requester ! {checkout, Ref, Result};
+        false ->
+          case Result of
+            {ok, {_Name, ConnRef, Connection, Owner, Transport}, Socket} ->
+              gen_server:call(Owner, {checkin, ConnRef, Connection, Socket, Transport}, infinity);
+            _Error ->
+              ok
+          end
+        end
     end,
-  _ = spawn_link(Fun),
+  _ = spawn(Fun),
   receive
     {checkout, Ref, Result} ->
       Result
